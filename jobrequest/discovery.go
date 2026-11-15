@@ -1,9 +1,7 @@
 package jobrequest
 
 import (
-	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 	"time"
 )
@@ -12,6 +10,11 @@ const (
 	BaseApiPrefix = "https://uw.wd5.myworkdayjobs.com/wday/cxs/uw/UWHires"
 	postURL       = BaseApiPrefix + "/jobs"
 )
+
+type searchEnvelope struct {
+	Total       int          `json:"total"`
+	JobPostings []workdayDTO `json:"jobPostings"`
+}
 
 type workdayDTO struct {
 	Title        string   `json:"title"`
@@ -29,21 +32,38 @@ type PostResponse struct {
 }
 
 func toJobPosting(dto workdayDTO) (PostResponse, error) {
+	if len(dto.BulletFields) < 1 {
+		return PostResponse{}, fmt.Errorf("bullet fields missing %q", dto.BulletFields)
+	}
+
 	jobTitle := dto.Title
 	externalPath := dto.ExternalPath
 	location := dto.Location
 
-	reqID := dto.BulletFields[0]
-	if !strings.HasPrefix("REQ-", reqID) {
-		errorMessage := fmt.Sprintf("reqID is malformed: %s", reqID)
-		slog.Error(errorMessage)
-		return PostResponse{}, errors.New(errorMessage)
-	}
+	var reqID string
+	var postedDate time.Time
 
-	postedDate := dto.BulletFields[0]
-	parsedDate, err := time.Parse(time.DateOnly, postedDate)
-	if err != nil {
-		return PostResponse{}, fmt.Errorf("malformed date %d: %w", postedDate, err)
+	for _, item := range dto.BulletFields {
+		if strings.HasPrefix(item, "REQ-") {
+			reqID = item
+			continue
+		}
+
+		if strings.HasPrefix(item, "Posting Date: ") {
+			splitDate := strings.Split(item, ":")
+			trimmedDate := strings.Trim(splitDate[1], " ")
+			parsedDate, err := time.Parse("01/02/2006", trimmedDate)
+			if err != nil {
+				return PostResponse{}, fmt.Errorf("malformed date %s: %w", trimmedDate, err)
+			}
+			postedDate = parsedDate
+			continue
+		}
+
+		continue
+	}
+	if reqID == "" {
+		return PostResponse{}, fmt.Errorf("reqID not found: %q", dto.BulletFields)
 	}
 
 	return PostResponse{
@@ -51,6 +71,6 @@ func toJobPosting(dto workdayDTO) (PostResponse, error) {
 		ExternalPath: externalPath,
 		Location:     location,
 		ReqID:        reqID,
-		PostedDate:   parsedDate,
+		PostedDate:   postedDate,
 	}, nil
 }
