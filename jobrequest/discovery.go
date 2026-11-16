@@ -43,7 +43,7 @@ type PostResponse struct {
 	PostedDate   time.Time
 }
 
-func SendWorkdayPost(searchText string) ([]PostResponse, error) {
+func SendWorkdayPost(searchText string, SeenMap map[string]PostResponse) (map[string]PostResponse, error) {
 	payload := map[string]any{
 		"appliedFacets": map[string]any{},
 		"limit":         payloadLimit,
@@ -83,16 +83,15 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 		return nil, fmt.Errorf("error in decoding JSON: %w", err)
 	}
 
-	JobPostings := make([]PostResponse, 0, len(SearchEnvelope.JobPostings))
 	for _, posting := range SearchEnvelope.JobPostings {
 		jobPosting, err := toJobPosting(posting)
 		if err != nil {
 			slog.Warn("malformed job posting", "title", posting.Title, "error", err)
 			continue
 		}
-		JobPostings = append(JobPostings, jobPosting)
+		SeenMap[jobPosting.ReqID] = jobPosting
 	}
-	return JobPostings, nil
+	return SeenMap, nil
 }
 
 func toJobPosting(dto workdayDTO) (PostResponse, error) {
