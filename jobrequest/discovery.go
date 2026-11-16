@@ -9,19 +9,20 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"UWScraper/constants"
 )
 
 const (
-	postURL = constants.BaseApiPrefix + "/jobs"
-
 	contentType   = "application/json"
 	payloadLimit  = 20
 	payloadOffset = 0
 
 	clientPostTimeout = 10
 )
+
+type WorkdayClient struct {
+	httpClient *http.Client
+	baseURL    string
+}
 
 type searchEnvelope struct {
 	Total       int          `json:"total"`
@@ -43,7 +44,7 @@ type PostResponse struct {
 	PostedDate   time.Time
 }
 
-func SendWorkdayPost(searchText string, SeenMap map[string]PostResponse) (map[string]PostResponse, error) {
+func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[string]PostResponse) (map[string]PostResponse, error) {
 	payload := map[string]any{
 		"appliedFacets": map[string]any{},
 		"limit":         payloadLimit,
@@ -55,7 +56,8 @@ func SendWorkdayPost(searchText string, SeenMap map[string]PostResponse) (map[st
 		return nil, fmt.Errorf("failed to assemble JSON: %w", err)
 	}
 
-	request, err := http.NewRequest("POST", postURL, &buffer)
+	postURL := c.baseURL + "/jobs"
+	request, err := http.NewRequest(http.MethodPost, postURL, &buffer)
 	if err != nil {
 		return nil, fmt.Errorf("error in POST send: %w", err)
 	}
@@ -63,19 +65,17 @@ func SendWorkdayPost(searchText string, SeenMap map[string]PostResponse) (map[st
 	request.Header.Set("Content-Type", contentType)
 	request.Header.Set("Accept", contentType)
 
-	client := &http.Client{Timeout: clientPostTimeout * time.Second}
-
-	response, err := client.Do(request)
+	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("error in client response: %w", err)
+		return nil, fmt.Errorf("error in client POST response: %w", err)
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
-			slog.Warn("error closing response body: %w", err)
+			slog.Warn("error closing POST response body", "error", err)
 		}
 	}(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error in client response: %d: %s", response.StatusCode, response.Status)
+		return nil, fmt.Errorf("error in client POST response: %d: %s", response.StatusCode, response.Status)
 	}
 
 	var SearchEnvelope searchEnvelope
@@ -89,9 +89,9 @@ func SendWorkdayPost(searchText string, SeenMap map[string]PostResponse) (map[st
 			slog.Warn("malformed job posting", "title", posting.Title, "error", err)
 			continue
 		}
-		SeenMap[jobPosting.ReqID] = jobPosting
+		AccumulatorMap[jobPosting.ReqID] = jobPosting
 	}
-	return SeenMap, nil
+	return AccumulatorMap, nil
 }
 
 func toJobPosting(dto workdayDTO) (PostResponse, error) {
