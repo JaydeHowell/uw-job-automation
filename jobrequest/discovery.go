@@ -36,7 +36,7 @@ type JobPosting struct {
 	PostedDate   time.Time
 }
 
-func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[string]JobPosting) (map[string]JobPosting, error) {
+func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[string]JobPosting) error {
 	payload := map[string]any{
 		"appliedFacets": map[string]any{},
 		"limit":         payloadLimit,
@@ -45,13 +45,13 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 	}
 	var buffer bytes.Buffer
 	if err := json.NewEncoder(&buffer).Encode(&payload); err != nil {
-		return nil, fmt.Errorf("failed to assemble JSON: %w", err)
+		return fmt.Errorf("failed to assemble JSON: %w", err)
 	}
 
 	postURL := c.baseURL + "/jobs"
 	request, err := http.NewRequest(http.MethodPost, postURL, &buffer)
 	if err != nil {
-		return nil, fmt.Errorf("error in POST send: %w", err)
+		return fmt.Errorf("error in POST send: %w", err)
 	}
 
 	request.Header.Set("Content-Type", c.contentType)
@@ -59,7 +59,7 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("error in client POST response: %w", err)
+		return fmt.Errorf("error in client POST response: %w", err)
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
@@ -67,12 +67,12 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 		}
 	}(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error in client POST response: %d: %s", response.StatusCode, response.Status)
+		return fmt.Errorf("error in client POST response: %d: %s", response.StatusCode, response.Status)
 	}
 
 	var SearchEnvelope searchEnvelope
 	if err := json.NewDecoder(response.Body).Decode(&SearchEnvelope); err != nil {
-		return nil, fmt.Errorf("error in decoding POST response JSON: %w", err)
+		return fmt.Errorf("error in decoding POST response JSON: %w", err)
 	}
 
 	for _, posting := range SearchEnvelope.JobPostings {
@@ -83,7 +83,7 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 		}
 		AccumulatorMap[jobPosting.ReqID] = jobPosting
 	}
-	return AccumulatorMap, nil
+	return nil
 }
 
 func toJobPosting(dto jobPostingDTO) (JobPosting, error) {
