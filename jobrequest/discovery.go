@@ -17,11 +17,11 @@ const (
 )
 
 type searchEnvelope struct {
-	Total       int          `json:"total"`
-	JobPostings []workdayDTO `json:"jobPostings"`
+	Total       int             `json:"total"`
+	JobPostings []jobPostingDTO `json:"jobPostings"`
 }
 
-type workdayDTO struct {
+type jobPostingDTO struct {
 	Title        string   `json:"title"`
 	ExternalPath string   `json:"externalPath"`
 	Location     string   `json:"locationsText"`
@@ -86,7 +86,7 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 	return AccumulatorMap, nil
 }
 
-func toJobPosting(dto workdayDTO) (JobPosting, error) {
+func toJobPosting(dto jobPostingDTO) (JobPosting, error) {
 	if len(dto.BulletFields) < 1 {
 		return JobPosting{}, fmt.Errorf("bullet fields missing %q", dto.BulletFields)
 	}
