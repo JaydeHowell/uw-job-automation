@@ -2,7 +2,7 @@ package jobrequest
 
 import "time"
 
-type JobPostingInfo struct {
+type JobInfo struct {
 	Title      string
 	Location   string
 	PostedDate time.Time
@@ -12,8 +12,8 @@ type JobPostingInfo struct {
 	URL        string
 }
 
-func ConstructJobOpening(posting JobPosting, description JobDescription) JobPostingInfo {
-	return JobPostingInfo{
+func ConstructJobOpening(posting JobPosting, description JobDescription) JobInfo {
+	return JobInfo{
 		Title:      posting.JobTitle,
 		Location:   posting.Location,
 		PostedDate: posting.PostedDate,
