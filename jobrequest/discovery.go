@@ -78,7 +78,7 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 		return nil, fmt.Errorf("error in decoding JSON: %w", err)
 	}
 
-	var JobPostings []PostResponse
+	JobPostings := make([]PostResponse, 0, len(SearchEnvelope.JobPostings))
 	for _, posting := range SearchEnvelope.JobPostings {
 		jobPosting, err := toJobPosting(posting)
 		if err != nil {
