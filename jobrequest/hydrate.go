@@ -6,41 +6,32 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"time"
 )
 
-type JobPostingInfo struct {
-	Title          string
-	Location       string
-	PostedDate     time.Time
-	TimeType       string
-	ReqID          string
-	JobDescription string
-	URL            string
+type JobPosting struct {
+	Title          string `json:"title"`
+	JobDescription string `json:"jobDescription"`
+	ExternalURL    string `json:"externalUrl"`
+	TimeType       string `json:"timeType"`
+	ReqID          string `json:"jobReqId"`
 }
 
-type JobDescriptionDTO struct {
-	JobPostingInfo struct {
-		Title          string `json:"title"`
-		JobDescription string `json:"jobDescription"`
-		ExternalURL    string `json:"externalUrl"`
-		TimeType       string `json:"timeType"`
-		ReqID          string `json:"jobReqId"`
-	} `json:"jobPostingInfo"`
+type jobDescriptionEnvelope struct {
+	JobPosting JobPosting `json:"jobPostingInfo"`
 }
 
-func (c *WorkdayClient) GetJobDescription(externalPath string) (JobDescriptionDTO, error) {
+func (c *WorkdayClient) GetWorkdayDescription(externalPath string) (JobPosting, error) {
 	jobURL := c.baseURL + externalPath
 	request, err := http.NewRequest(http.MethodGet, jobURL, nil)
 	if err != nil {
-		return JobDescriptionDTO{}, fmt.Errorf("error in GET request: %w", err)
+		return JobPosting{}, fmt.Errorf("error in GET request: %w", err)
 	}
 
 	request.Header.Set("Accept", c.contentType)
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return JobDescriptionDTO{}, fmt.Errorf("error in client GET response: %w", err)
+		return JobPosting{}, fmt.Errorf("error in client GET response: %w", err)
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
@@ -48,13 +39,13 @@ func (c *WorkdayClient) GetJobDescription(externalPath string) (JobDescriptionDT
 		}
 	}(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return JobDescriptionDTO{}, fmt.Errorf("error in client GET response: %d: %s", response.StatusCode, response.Status)
+		return JobPosting{}, fmt.Errorf("error in client GET response: %d: %s", response.StatusCode, response.Status)
 	}
 
-	var jobDescriptionDTO JobDescriptionDTO
-	if err := json.NewDecoder(response.Body).Decode(&jobDescriptionDTO); err != nil {
-		return JobDescriptionDTO{}, fmt.Errorf("error in decoding GET response JSON: %w", err)
+	var jobDescription jobDescriptionEnvelope
+	if err := json.NewDecoder(response.Body).Decode(&jobDescription); err != nil {
+		return JobPosting{}, fmt.Errorf("error in decoding GET response JSON: %w", err)
 	}
 
-	return jobDescriptionDTO, nil
+	return jobDescription.JobPosting, nil
 }
