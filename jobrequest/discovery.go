@@ -28,7 +28,7 @@ type workdayDTO struct {
 	BulletFields []string `json:"bulletFields"`
 }
 
-type PostResponse struct {
+type JobPosting struct {
 	JobTitle     string
 	ExternalPath string
 	Location     string
@@ -36,7 +36,7 @@ type PostResponse struct {
 	PostedDate   time.Time
 }
 
-func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[string]PostResponse) (map[string]PostResponse, error) {
+func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[string]JobPosting) (map[string]JobPosting, error) {
 	payload := map[string]any{
 		"appliedFacets": map[string]any{},
 		"limit":         payloadLimit,
@@ -86,9 +86,9 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 	return AccumulatorMap, nil
 }
 
-func toJobPosting(dto workdayDTO) (PostResponse, error) {
+func toJobPosting(dto workdayDTO) (JobPosting, error) {
 	if len(dto.BulletFields) < 1 {
-		return PostResponse{}, fmt.Errorf("bullet fields missing %q", dto.BulletFields)
+		return JobPosting{}, fmt.Errorf("bullet fields missing %q", dto.BulletFields)
 	}
 
 	jobTitle := dto.Title
@@ -109,7 +109,7 @@ func toJobPosting(dto workdayDTO) (PostResponse, error) {
 			trimmedDate := strings.Trim(splitDate[1], " ")
 			parsedDate, err := time.Parse("01/02/2006", trimmedDate)
 			if err != nil {
-				return PostResponse{}, fmt.Errorf("malformed date %s: %w", trimmedDate, err)
+				return JobPosting{}, fmt.Errorf("malformed date %s: %w", trimmedDate, err)
 			}
 			postedDate = parsedDate
 			continue
@@ -118,10 +118,10 @@ func toJobPosting(dto workdayDTO) (PostResponse, error) {
 		continue
 	}
 	if reqID == "" {
-		return PostResponse{}, fmt.Errorf("reqID not found: %q", dto.BulletFields)
+		return JobPosting{}, fmt.Errorf("reqID not found: %q", dto.BulletFields)
 	}
 
-	return PostResponse{
+	return JobPosting{
 		JobTitle:     jobTitle,
 		ExternalPath: externalPath,
 		Location:     location,
