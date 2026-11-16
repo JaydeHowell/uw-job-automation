@@ -47,12 +47,12 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 	}
 	var buffer bytes.Buffer
 	if err := json.NewEncoder(&buffer).Encode(&payload); err != nil {
-		return []PostResponse{}, fmt.Errorf("failed to assemble JSON: %w", err)
+		return nil, fmt.Errorf("failed to assemble JSON: %w", err)
 	}
 
 	request, err := http.NewRequest("POST", postURL, &buffer)
 	if err != nil {
-		return []PostResponse{}, fmt.Errorf("error in POST send: %w", err)
+		return nil, fmt.Errorf("error in POST send: %w", err)
 	}
 
 	request.Header.Set("Content-Type", contentType)
@@ -62,7 +62,7 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 
 	response, err := client.Do(request)
 	if err != nil {
-		return []PostResponse{}, fmt.Errorf("error in client response: %w", err)
+		return nil, fmt.Errorf("error in client response: %w", err)
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
@@ -70,19 +70,19 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 		}
 	}(response.Body)
 	if response.StatusCode != http.StatusOK {
-		return []PostResponse{}, fmt.Errorf("error in client response: %d: %s", response.StatusCode, response.Status)
+		return nil, fmt.Errorf("error in client response: %d: %s", response.StatusCode, response.Status)
 	}
 
 	var SearchEnvelope searchEnvelope
 	if err := json.NewDecoder(response.Body).Decode(&SearchEnvelope); err != nil {
-		return []PostResponse{}, fmt.Errorf("error in decoding JSON: %w", err)
+		return nil, fmt.Errorf("error in decoding JSON: %w", err)
 	}
 
 	var JobPostings []PostResponse
 	for _, posting := range SearchEnvelope.JobPostings {
 		jobPosting, err := toJobPosting(posting)
 		if err != nil {
-			return []PostResponse{}, err
+			return nil, err
 		}
 		JobPostings = append(JobPostings, jobPosting)
 	}
