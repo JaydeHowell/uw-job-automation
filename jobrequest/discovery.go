@@ -20,8 +20,9 @@ const (
 )
 
 type WorkdayClient struct {
-	httpClient *http.Client
-	baseURL    string
+	httpClient  *http.Client
+	baseURL     string
+	contentType string
 }
 
 type searchEnvelope struct {
@@ -62,8 +63,8 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 		return nil, fmt.Errorf("error in POST send: %w", err)
 	}
 
-	request.Header.Set("Content-Type", contentType)
-	request.Header.Set("Accept", contentType)
+	request.Header.Set("Content-Type", c.contentType)
+	request.Header.Set("Accept", c.contentType)
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
@@ -80,7 +81,7 @@ func (c *WorkdayClient) SendWorkdayPost(searchText string, AccumulatorMap map[st
 
 	var SearchEnvelope searchEnvelope
 	if err := json.NewDecoder(response.Body).Decode(&SearchEnvelope); err != nil {
-		return nil, fmt.Errorf("error in decoding JSON: %w", err)
+		return nil, fmt.Errorf("error in decoding POST response JSON: %w", err)
 	}
 
 	for _, posting := range SearchEnvelope.JobPostings {
