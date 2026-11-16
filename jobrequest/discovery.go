@@ -63,15 +63,14 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 	if err != nil {
 		return []PostResponse{}, fmt.Errorf("error in client response: %w", err)
 	}
-	if response.StatusCode != http.StatusOK {
-		return []PostResponse{}, fmt.Errorf("error in client response: %d: %s", response.StatusCode, response.Status)
-	}
-
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
 			fmt.Errorf("error closing response body: %w", err)
 		}
 	}(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return []PostResponse{}, fmt.Errorf("error in client response: %d: %s", response.StatusCode, response.Status)
+	}
 
 	var SearchEnvelope searchEnvelope
 	if err := json.NewDecoder(response.Body).Decode(&SearchEnvelope); err != nil {
