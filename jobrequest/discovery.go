@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -65,7 +66,7 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 	}
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
-			fmt.Errorf("error closing response body: %w", err)
+			slog.Warn("error closing response body: %w", err)
 		}
 	}(response.Body)
 	if response.StatusCode != http.StatusOK {
