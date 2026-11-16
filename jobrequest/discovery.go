@@ -9,11 +9,12 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"UWScraper/constants"
 )
 
 const (
-	BaseApiPrefix = "https://uw.wd5.myworkdayjobs.com/wday/cxs/uw/UWHires"
-	postURL       = BaseApiPrefix + "/jobs"
+	postURL = constants.BaseApiPrefix + "/jobs"
 
 	contentType   = "application/json"
 	payloadLimit  = 20
