@@ -12,18 +12,9 @@ import (
 )
 
 const (
-	contentType   = "application/json"
 	payloadLimit  = 20
 	payloadOffset = 0
-
-	clientPostTimeout = 10
 )
-
-type WorkdayClient struct {
-	httpClient  *http.Client
-	baseURL     string
-	contentType string
-}
 
 type searchEnvelope struct {
 	Total       int          `json:"total"`
