@@ -82,7 +82,8 @@ func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 	for _, posting := range SearchEnvelope.JobPostings {
 		jobPosting, err := toJobPosting(posting)
 		if err != nil {
-			return nil, err
+			errorMessage := fmt.Sprintf("malformed job posting data in %s: %v", posting.Title, err)
+			slog.Warn(errorMessage)
 		}
 		JobPostings = append(JobPostings, jobPosting)
 	}
