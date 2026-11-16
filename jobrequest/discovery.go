@@ -12,9 +12,13 @@ import (
 )
 
 const (
-	BaseApiPrefix     = "https://uw.wd5.myworkdayjobs.com/wday/cxs/uw/UWHires"
-	postURL           = BaseApiPrefix + "/jobs"
-	contentType       = "application/json"
+	BaseApiPrefix = "https://uw.wd5.myworkdayjobs.com/wday/cxs/uw/UWHires"
+	postURL       = BaseApiPrefix + "/jobs"
+
+	contentType   = "application/json"
+	payloadLimit  = 20
+	payloadOffset = 0
+
 	clientPostTimeout = 10
 )
 
@@ -41,8 +45,8 @@ type PostResponse struct {
 func SendWorkdayPost(searchText string) ([]PostResponse, error) {
 	payload := map[string]any{
 		"appliedFacets": map[string]any{},
-		"limit":         20,
-		"offset":        0,
+		"limit":         payloadLimit,
+		"offset":        payloadOffset,
 		"searchText":    searchText,
 	}
 	var buffer bytes.Buffer
