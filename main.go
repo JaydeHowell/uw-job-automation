@@ -5,6 +5,8 @@ import (
 
 	"UWScraper/constants"
 	"UWScraper/jobrequest"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -24,5 +26,9 @@ func main() {
 			continue
 		}
 		jobs = append(jobs, jobrequest.ConstructJobOpening(jobPosting, jobDescription))
+	}
+
+	if err := godotenv.Load(); err != nil {
+		slog.Debug("error in loading environment", "error", err)
 	}
 }
