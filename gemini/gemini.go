@@ -10,6 +10,21 @@ import (
 	"google.golang.org/genai"
 )
 
+type Buckets string
+
+const (
+	Accepted  Buckets = "accepted"
+	Rejected  Buckets = "rejected"
+	Duplicate Buckets = "duplicate"
+)
+
+type JobEvaluation struct {
+	RefID     string
+	Score     float32
+	Reasoning string
+	Bucket    Buckets
+}
+
 func NewGenAIClient(ctx context.Context) (*genai.Client, error) {
 	apiKey, envExists := os.LookupEnv("GEMINI_API_KEY")
 	if !envExists || strings.TrimSpace(apiKey) == "" {
