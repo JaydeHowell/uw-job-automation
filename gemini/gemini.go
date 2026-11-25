@@ -2,27 +2,21 @@ package gemini
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 
+	"UWScraper/constants"
+
 	"google.golang.org/genai"
 )
 
-type Buckets string
-
-const (
-	Accepted  Buckets = "accepted"
-	Rejected  Buckets = "rejected"
-	Duplicate Buckets = "duplicate"
-)
-
 type JobEvaluation struct {
-	RefID     string
-	Score     float32
-	Reasoning string
-	Bucket    Buckets
+	RefID     string `json:"refID"`
+	Reasoning string `json:"reasoning"`
+	Score     int    `json:"score"`
 }
 
 func NewGenAIClient(ctx context.Context) (*genai.Client, error) {
@@ -37,5 +31,50 @@ func NewGenAIClient(ctx context.Context) (*genai.Client, error) {
 	}
 
 	return client, nil
+}
 
+func GetJobEvaluation(ctx context.Context, client *genai.Client, parts []*genai.Part) ([]JobEvaluation, error) {
+	config := &genai.GenerateContentConfig{}
+	config.SystemInstruction = &genai.Content{
+		Parts: []*genai.Part{
+			{Text: SystemPrompt},
+		},
+	}
+
+	config.ResponseMIMEType = "application/json"
+
+	evaluationSchema := &genai.Schema{
+		Type: genai.TypeObject,
+		Properties: map[string]*genai.Schema{
+			"refID": {
+				Type:        genai.TypeString,
+				Description: "The refernce ID of the job",
+			},
+			"reasoning": {
+				Type:        genai.TypeString,
+				Description: "The reasoning behind why the score was given",
+			},
+			"score": {
+				Type:        genai.TypeInteger,
+				Description: "Evaluation score given to the job between 0 and 100",
+			},
+		},
+		Required:         []string{"refID", "reasoning", "score"},
+		PropertyOrdering: []string{"refID", "reasoning", "score"},
+	}
+	config.ResponseSchema = &genai.Schema{
+		Type:  genai.TypeArray,
+		Items: evaluationSchema,
+	}
+
+	response, err := client.Models.GenerateContent(ctx, constants.GeminiModel, []*genai.Content{{Parts: parts}}, config)
+	if err != nil {
+		return nil, fmt.Errorf("error in evaluation request: %w", err)
+	}
+
+	var evaluations []JobEvaluation
+	if err := json.Unmarshal([]byte(response.Text()), &evaluations); err != nil {
+		return nil, fmt.Errorf("decode job evaluations: %w", err)
+	}
+	return evaluations, nil
 }
