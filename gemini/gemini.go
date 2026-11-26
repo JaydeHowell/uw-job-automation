@@ -50,7 +50,7 @@ func GetJobEvaluations(ctx context.Context, client *genai.Client, parts []*genai
 		Properties: map[string]*genai.Schema{
 			"refID": {
 				Type:        genai.TypeString,
-				Description: "The refernce ID of the job",
+				Description: "The reference ID of the job",
 			},
 			"reasoning": {
 				Type:        genai.TypeString,
