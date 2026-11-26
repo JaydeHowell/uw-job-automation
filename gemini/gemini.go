@@ -48,21 +48,21 @@ func GetJobEvaluations(ctx context.Context, client *genai.Client, parts []*genai
 	evaluationSchema := &genai.Schema{
 		Type: genai.TypeObject,
 		Properties: map[string]*genai.Schema{
-			"refID": {
+			"ReqID": {
 				Type:        genai.TypeString,
 				Description: "The reference ID of the job",
 			},
-			"reasoning": {
+			"Reasoning": {
 				Type:        genai.TypeString,
 				Description: "The reasoning behind why the score was given",
 			},
-			"score": {
+			"Score": {
 				Type:        genai.TypeInteger,
 				Description: "Evaluation score given to the job between 0 and 100",
 			},
 		},
-		Required:         []string{"refID", "reasoning", "score"},
-		PropertyOrdering: []string{"refID", "reasoning", "score"},
+		Required:         []string{"ReqID", "Reasoning", "Score"},
+		PropertyOrdering: []string{"ReqID", "Reasoning", "Score"},
 	}
 	config.ResponseSchema = &genai.Schema{
 		Type:  genai.TypeArray,
