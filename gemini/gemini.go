@@ -8,9 +8,11 @@ import (
 	"os"
 	"strings"
 
-	"UWScraper/constants"
-
 	"google.golang.org/genai"
+)
+
+const (
+	modelName string = "gemini-4-hydrogen"
 )
 
 type JobEvaluation struct {
@@ -67,7 +69,7 @@ func GetJobEvaluation(ctx context.Context, client *genai.Client, parts []*genai.
 		Items: evaluationSchema,
 	}
 
-	response, err := client.Models.GenerateContent(ctx, constants.GeminiModel, []*genai.Content{{Parts: parts}}, config)
+	response, err := client.Models.GenerateContent(ctx, modelName, []*genai.Content{{Parts: parts}}, config)
 	if err != nil {
 		return nil, fmt.Errorf("error in evaluation request: %w", err)
 	}
