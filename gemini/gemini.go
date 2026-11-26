@@ -16,9 +16,9 @@ const (
 )
 
 type JobEvaluation struct {
-	RefID     string `json:"refID"`
-	Reasoning string `json:"reasoning"`
-	Score     int    `json:"score"`
+	ReqID     string `json:"ReqID"`
+	Reasoning string `json:"Reasoning"`
+	Score     int    `json:"Score"`
 }
 
 func NewGenAIClient(ctx context.Context) (*genai.Client, error) {
@@ -35,7 +35,7 @@ func NewGenAIClient(ctx context.Context) (*genai.Client, error) {
 	return client, nil
 }
 
-func GetJobEvaluation(ctx context.Context, client *genai.Client, parts []*genai.Part) ([]JobEvaluation, error) {
+func GetJobEvaluations(ctx context.Context, client *genai.Client, parts []*genai.Part) ([]JobEvaluation, error) {
 	config := &genai.GenerateContentConfig{}
 	config.SystemInstruction = &genai.Content{
 		Parts: []*genai.Part{
