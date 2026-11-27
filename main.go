@@ -9,6 +9,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	batchRequests  int    = 5
+	profileDefault string = "profile/profile.md"
+)
+
+var searchTerms = [...]string{"robotics", "control", "APL", "autonomous", "Rust"}
+
 func main() {
 	workdayClient := jobrequest.NewWorkdayClient()
 	searchTerms := constants.SearchTerms
