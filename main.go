@@ -14,7 +14,7 @@ const (
 	profileDefault string = "profile/profile.md"
 )
 
-var searchTerms = [...]string{"robotics", "control", "APL", "autonomous", "Rust"}
+var searchTerms = [...]string{"robotics", "APL", "autonomous", "Rust"}
 
 func main() {
 	workdayClient := jobrequest.NewWorkdayClient()
