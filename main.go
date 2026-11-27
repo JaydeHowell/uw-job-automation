@@ -38,4 +38,31 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		slog.Debug("error in loading environment", "error", err)
 	}
+	profileFile, err := gemini.ReadProfile(profileDefault)
+	if err != nil {
+		slog.Error("unable to load profile", "error", err)
+	}
+
+	client, err := gemini.NewGenAIClient(ctx)
+	if err != nil {
+		slog.Error("error in loading Gemini client", "error", err)
+	}
+
+	AIEvaluations := make([]gemini.JobEvaluation, 0, len(jobs))
+	for start := 0; start < len(jobs); start += batchRequests {
+		end := min(start+batchRequests, len(jobs))
+
+		parts, err := gemini.CreateGeminiRequest(profileFile, jobs[start:end])
+		if err != nil {
+			slog.Debug("error in creating Gemini request", "error", err)
+			continue
+		}
+		batchEvaluations, err := gemini.GetJobEvaluations(ctx, client, parts)
+		if err != nil {
+			slog.Debug("error in Gemini job evaluation", "error", err)
+		}
+
+		AIEvaluations = append(AIEvaluations, batchEvaluations...)
+	}
+
 }
