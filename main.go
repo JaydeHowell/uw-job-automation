@@ -1,9 +1,10 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 
-	"UWScraper/constants"
+	"UWScraper/gemini"
 	"UWScraper/jobrequest"
 
 	"github.com/joho/godotenv"
@@ -17,8 +18,8 @@ const (
 var searchTerms = [...]string{"robotics", "APL", "autonomous", "Rust"}
 
 func main() {
+	ctx := context.Background()
 	workdayClient := jobrequest.NewWorkdayClient()
-	searchTerms := constants.SearchTerms
 	jobPostingMap := make(map[string]jobrequest.JobPosting)
 	for _, term := range searchTerms {
 		if err := workdayClient.SendWorkdayPost(term, jobPostingMap); err != nil {
