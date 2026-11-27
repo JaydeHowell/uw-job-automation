@@ -83,10 +83,10 @@ func GetJobEvaluations(ctx context.Context, client *genai.Client, parts []*genai
 	return evaluations, nil
 }
 
-func CreateGeminiRequest(prompt string, batch []jobrequest.JobInfo) ([]*genai.Part, error) {
+func CreateGeminiRequest(profile []byte, batch []jobrequest.JobInfo) ([]*genai.Part, error) {
 	batchJSON, err := json.Marshal(batch)
 	if err != nil {
 		return nil, fmt.Errorf("marshaling gemini request: %w", err)
 	}
-	return []*genai.Part{{Text: "<job_postings>\n" + string(batchJSON) + "\n</job_postings>\n" + prompt}}, nil
+	return []*genai.Part{{Text: "<job_postings>\n" + string(batchJSON) + "\n</job_postings>\n" + "<candidate_profile>" + string(profile) + "</candidate_profile>"}}, nil
 }
